@@ -1,0 +1,16 @@
+Rarity: Rare
+Brimstone Loop
+Two-Stone Ring
+--------
+Requirements:
+Level: 59
+--------
+Itemlevel: 74
+--------
++13% to Fire and Lightning Resistances
+--------
+Adds 1-2 Physical Damage
++43 to Strength
++11 to all Attributes
++26 to maximum Mana
++24% to Lightning Resistance

@@ -1,0 +1,18 @@
+Rarity: Magic
+Surgeon's Topaz Flask of Warding
+--------
+Lasts 3.50 Seconds
+Consumes 30 of 60 Charges on use
+Currently has 0 Charges
++10% to maximum Lightning Resistance (augmented)
++50% to Lightning Resistance (augmented)
+--------
+Requirements:
+Level: 18
+--------
+Itemlevel: 68
+--------
+Immunity to Curses during flask effect. Removes Curses on use
+Recharges 1 Charge when you deal a Critical Strike
+--------
+Right click to drink. Can only hold charges while in belt. Refills as you kill monsters.

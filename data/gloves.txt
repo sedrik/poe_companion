@@ -1,0 +1,23 @@
+Rarity: Rare
+Death Hold
+Hydrascale Gauntlets
+--------
+Armour: 157 (augmented)
+Evasion Rating: 157 (augmented)
+--------
+Requirements:
+Level: 64
+Str: 121
+Dex: 45
+Int: 39
+--------
+Sockets: R-R-R-R 
+--------
+Itemlevel: 73
+--------
++30 to Dexterity
+71% increased Armour and Evasion
++88 to maximum Life
++42% to Fire Resistance
++35% to Lightning Resistance
+1% of Physical Attack Damage Leeched as Life

@@ -1,0 +1,19 @@
+Rarity: Gem
+Anger
+--------
+Aura, Fire, Spell, AoE
+Level: 10
+Mana Reserved: 60%
+Cooldown Time: 0.50 sec
+Cast Time: 1.20 sec
+Experience: 274 328/1 061 223
+--------
+Requirements:
+Level: 40
+Str: 58
+Int: 40
+--------
+25% increased Area of Effect radius
+You and nearby allies deal 26-44 additional Fire Damage with Attacks
+--------
+Place into an item socket of the right colour to gain this skill. Right click to remove from a socket.

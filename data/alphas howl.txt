@@ -1,0 +1,27 @@
+Rarity: Unique
+Alpha's Howl
+Sinner Tricorne
+--------
+Quality: +20% (augmented)
+Evasion Rating: 642 (augmented)
+--------
+Requirements:
+Level: 64
+Str: 83
+Dex: 138
+Int: 138
+--------
+Sockets: B-R-R-G
+--------
+Itemlevel: 72
+--------
++2 to Level of Aura Gems in this item
+80% increased Evasion Rating
++27% to Cold Resistance
+25% chance to Avoid being Chilled
+Cannot be Frozen
+8% reduced Mana Reserved
+--------
+Nature respects the strong
+And paints the snow red
+With the blood of the weak

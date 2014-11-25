@@ -1,0 +1,15 @@
+Rarity: Rare
+Savage Solitude
+Mountain Ledge Map
+--------
+Map Level: 67
+Item Quantity: +87% (augmented)
+--------
+Itemlevel: 68
+--------
+Players are cursed with Temporal Chains
+Players have no Life or Mana Regeneration
+29% increased Monster Life
+30% increased Monster Damage
+--------
+Travel to this Map by using it in the Eternal Laboratory or a personal Map Device. Maps can only be used once.

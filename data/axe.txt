@@ -1,0 +1,22 @@
+Rarity: Rare
+Dragon Rend
+Labrys
+--------
+Two Handed Axe
+Physical Damage: 95-158 (augmented)
+Critical Strike Chance: 5.00%
+Attacks per Second: 1.24 (augmented)
+--------
+Requirements:
+Level: 49
+Str: 122
+Dex: 53
+--------
+Sockets: B
+--------
+Itemlevel: 68
+--------
+34% increased Physical Damage
+8% increased Attack Speed
++9 Life gained on Kill
++174 to Accuracy Rating

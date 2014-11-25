@@ -1,0 +1,26 @@
+Rarity: Rare
+Apocalypse Beam
+Quarterstaff
+--------
+Staff
+Physical Damage: 47-79
+Critical Strike Chance: 6.50%
+Attacks per Second: 1.25
+--------
+Requirements:
+Level: 66
+Str: 72
+Dex: 52
+Int: 146
+--------
+Sockets: B-B-B-G-B R 
+--------
+Itemlevel: 70
+--------
+12% Chance to Block
+--------
++2 to Level of Fire Gems in this item
++36 to Strength
+19% increased Cast Speed
++8 to Accuracy Rating
++28 to maximum Mana

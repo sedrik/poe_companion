@@ -1,0 +1,25 @@
+Rarity: Rare
+Phoenix Gutter
+Slaughter Knife
+--------
+Dagger
+Physical Damage: 9-78
+Elemental Damage: 1-10 (augmented)
+Critical Strike Chance: 6.80%
+Attacks per Second: 1.40
+--------
+Requirements:
+Level: 58
+Dex: 81
+Int: 117
+--------
+Sockets: B-B B 
+--------
+Itemlevel: 60
+--------
+40% increased Global Critical Strike Chance
+--------
+57% increased Spell Damage
++31 to Dexterity
+Adds 1-10 Lightning Damage
+13% increased Critical Strike Chance for Spells

@@ -1,0 +1,20 @@
+Rarity: Rare
+Wrath Shelter
+Spidersilk Robe
+--------
+Quality: +20% (augmented)
+Energy Shield: 124 (augmented)
+--------
+Requirements:
+Level: 66
+Str: 62
+Dex: 43
+Int: 146
+--------
+Sockets: B B-R-B-B-B
+--------
+Itemlevel: 75
+--------
++13 to Intelligence
++84 to maximum Life
+1.7 Life Regenerated per second

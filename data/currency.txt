@@ -1,0 +1,9 @@
+Rarity: Currency
+Blacksmith's Whetstone
+--------
+Stack Size: 20/20
+--------
+Improves the quality of a weapon
+--------
+Right click this item then left click a weapon to apply it. Has greater effect on lower rarity weapons. The maximum quality is 20%.
+Shift click to unstack.

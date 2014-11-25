@@ -1,0 +1,5 @@
+[package]
+
+name = "poe"
+version = "0.0.1"
+authors = ["Fredrik Andersson <sir.sedrik@gmail.com>"]
