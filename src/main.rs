@@ -26,5 +26,9 @@ fn main() {
 
     let item = Item::new(item_cstr);
 
-    println!("{}", item);
+    println!("{} (ilvl: {})  DPS: {}, pDPS: {}, eDPS: {}", item.name,
+                                                           item.ilvl,
+                                                           item.dps(),
+                                                           item.pdps(),
+                                                           item.edps());
 }

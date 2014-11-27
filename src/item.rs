@@ -39,7 +39,7 @@ struct Dmg {
 #[deriving(Show, Default, PartialEq)]
 pub struct Item {
     rarity : Rarity,
-    name : String,
+    pub name : String,
     itype : String,
     hands : String, //Need better name, what can I do with this field?
     damage : Vec<Dmg>, // TODO Should probably be a Vec with all the damage types
@@ -50,7 +50,7 @@ pub struct Item {
     req_dex : int,
     req_int : int,
     sockets : String, // represent, sockets, links, colours TODO
-    ilvl : int,
+    pub ilvl : int,
     affixes : Vec<String>, // represent differnt affixes in a good way? TODO
 } impl Item {
     pub fn new(input: String) -> Item {
@@ -209,7 +209,6 @@ pub struct Item {
     fn dps_calc(min : int, max : int, speed : f64) -> f64 {
         (min + max) as f64 / 2.0 * speed
     }
-
 }
 
 #[cfg(test)]
