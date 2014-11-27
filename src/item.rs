@@ -178,6 +178,11 @@ pub struct Item {
 
         return item
     }
+
+    pub fn dps(&self) -> f64 {
+        (self.physdmg.min + self.physdmg.max) as f64 / 2.0 * self.speed
+    }
+
 }
 
 #[cfg(test)]
@@ -211,7 +216,7 @@ mod test{
                    8% increased Attack Speed\n\
                    +9 Life gained on Kill\n\
                    +174 to Accuracy Rating";
-        let result = super::Item::new(axe.to_string());
+        let item = super::Item::new(axe.to_string());
         let expected = Item{rarity: Rarity::Rare,
                             name: "Dragon Rend".to_string(),
                             itype: "Labrys".to_string(),
@@ -232,6 +237,7 @@ mod test{
                                           "8% increased Attack Speed".to_string(),
                                           "+9 Life gained on Kill".to_string(),
                                           "+174 to Accuracy Rating".to_string())};
-        assert_eq!(expected, result);
+        assert_eq!(expected, item);
+        assert!(item.dps() - 156.86 < 0.001);
     }
 }
