@@ -1,12 +1,8 @@
-#![feature(phase)]
-#[phase(plugin)]
-extern crate regex_macros;
-extern crate regex;
-extern crate poe;
+extern crate poe_companion;
 
 use std::io::Command;
 use std::str::MaybeOwned;
-use poe::item::Item;
+use poe_companion::item::Item;
 
 #[cfg(not(test))]
 fn main() {

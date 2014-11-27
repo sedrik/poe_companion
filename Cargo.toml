@@ -1,5 +1,5 @@
 [package]
 
-name = "poe"
+name = "poe_companion"
 version = "0.0.1"
 authors = ["Fredrik Andersson <sir.sedrik@gmail.com>"]
