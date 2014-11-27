@@ -1,6 +1,7 @@
 extern crate regex;
 
 use std::default::Default;
+use std::iter::AdditiveIterator;
 
 #[deriving(Show, PartialEq)]
 pub enum Rarity {
@@ -41,7 +42,7 @@ pub struct Item {
     name : String,
     itype : String,
     hands : String, //Need better name, what can I do with this field?
-    physdmg : Dmg, // TODO Should probably be a Vec with all the damage types
+    damage : Vec<Dmg>, // TODO Should probably be a Vec with all the damage types
     crit_chance : f64,
     speed : f64,
     req_level : int,
@@ -96,7 +97,7 @@ pub struct Item {
                 min : from_str(cap.at(2)).unwrap(),
                 max : from_str(cap.at(3)).unwrap(),
             };
-            item.physdmg = dmg;
+            item.damage.push(dmg);
         }
 
         // Critical Strike Chance: 5.00%
@@ -180,7 +181,33 @@ pub struct Item {
     }
 
     pub fn dps(&self) -> f64 {
-        (self.physdmg.min + self.physdmg.max) as f64 / 2.0 * self.speed
+        self.damage.iter()
+                   .map(|dmg| Item::dps_calc(dmg.min, dmg.max, self.speed))
+                   .sum()
+    }
+
+    pub fn pdps(&self) -> f64 {
+        self.damage.iter()
+                   .find(|dmg| dmg.dmgtype == DamageType::Physical)
+                   .map(|dmg| Item::dps_calc(dmg.min, dmg.max, self.speed))
+                   .unwrap()
+    }
+
+    pub fn edps(&self) -> f64 {
+        match self.damage.iter()
+                         .find(|dmg| dmg.dmgtype == DamageType::Lightning ||
+                                     dmg.dmgtype == DamageType::Fire ||
+                                     dmg.dmgtype == DamageType::Ice)
+                         .map(|dmg| Item::dps_calc(dmg.min, dmg.max,
+                                                   self.speed)) {
+                Some(dps) => dps,
+                None => 0.0
+            }
+
+    }
+
+    fn dps_calc(min : int, max : int, speed : f64) -> f64 {
+        (min + max) as f64 / 2.0 * speed
     }
 
 }
@@ -221,10 +248,12 @@ mod test{
                             name: "Dragon Rend".to_string(),
                             itype: "Labrys".to_string(),
                             hands: "Two Handed Axe".to_string(),
-                            physdmg: Dmg {dmgtype : DamageType::Physical,
-                                          min : 95,
-                                          max : 158,
-                                         },
+                            damage: vec!(
+                                Dmg {
+                                    dmgtype : DamageType::Physical,
+                                    min : 95,
+                                    max : 158,
+                                }),
                             crit_chance: 5.00,
                             speed: 1.24,
                             req_level: 49,
@@ -239,5 +268,7 @@ mod test{
                                           "+174 to Accuracy Rating".to_string())};
         assert_eq!(expected, item);
         assert!(item.dps() - 156.86 < 0.001);
+        assert!(item.pdps() - 156.86 < 0.001);
+        assert_eq!(item.edps(), 0.0);
     }
 }
