@@ -20,7 +20,7 @@ enum DamageType {
     Lightning,
     Ice,
     Fire,
-    Chaos
+//    Chaos,
 } impl Default for DamageType {
     fn default() -> DamageType { DamageType::Physical }
 }
