@@ -13,22 +13,44 @@ pub enum Rarity {
     fn default() -> Rarity { Rarity::Unknown }
 }
 
+#[deriving(Show, PartialEq)]
+enum DamageType {
+    Physical,
+    Lightning,
+    Ice,
+    Fire,
+    Chaos
+} impl Default for DamageType {
+    fn default() -> DamageType { DamageType::Physical }
+}
+
+#[deriving(Show, PartialEq)]
+struct Dmg {
+    dmgtype : DamageType,
+    min : int,
+    max : int,
+} impl Default for Dmg {
+    fn default() -> Dmg { Dmg{dmgtype : DamageType::Physical,
+                          min : 0,
+                          max : 0} }
+}
+
 #[deriving(Show, Default, PartialEq)]
 pub struct Item {
     rarity : Rarity,
     name : String,
     itype : String,
     hands : String, //Need better name, what can I do with this field?
-    physdmg : String, // Need max, min, avg TODO support elemental
-    crit_chance : String, // Translate to float
-    speed : f64, //attack per second, convert to float
-    req_level : String, // Convert to int
-    req_str : String, // Convert to int
-    req_dex : String, // Convert to int
-    req_int : String, // convert to int
-    sockets : String, // represent, sockets, links, colours
-    ilvl : String, // Convert to int
-    affixes : Vec<String>, // represent differnt affixes in a good way?
+    physdmg : Dmg, // TODO Should probably be a Vec with all the damage types
+    crit_chance : f64,
+    speed : f64,
+    req_level : int,
+    req_str : int,
+    req_dex : int,
+    req_int : int,
+    sockets : String, // represent, sockets, links, colours TODO
+    ilvl : int,
+    affixes : Vec<String>, // represent differnt affixes in a good way? TODO
 } impl Item {
     pub fn new(input: String) -> Item {
         let mut item: Item = Default::default();
@@ -60,16 +82,34 @@ pub struct Item {
         item.hands = lines.next().unwrap().to_string();
 
         // Physical Damage: 95-158 (augmented)
-        item.physdmg = lines.next().unwrap().to_string();
+        let dmg_txt = r"([:alpha:]+) Damage: ([0-9]+)-([0-9]+) \(augmented\)";
+        let dmg_re = regex::Regex::new(dmg_txt).unwrap();
+        for cap in dmg_re.captures_iter(lines.next().unwrap()) {
+            let dmg = Dmg {
+                dmgtype : {
+                    match cap.at(1) {
+                        "Physical" => DamageType::Physical,
+                        "" => panic!("No dmgtype found"),
+                        _ => panic!("Dmg regex did not match"),
+                    }
+                },
+                min : from_str(cap.at(2)).unwrap(),
+                max : from_str(cap.at(3)).unwrap(),
+            };
+            item.physdmg = dmg;
+        }
 
         // Critical Strike Chance: 5.00%
-        item.crit_chance = lines.next().unwrap().to_string();
+        let crit_txt = r"Critical Strike Chance: ([0-9]+\.[0-9]+?)%";
+        let crit_re = regex::Regex::new(crit_txt).unwrap();
+        for cap in crit_re.captures_iter(lines.next().unwrap()) {
+            item.crit_chance = from_str(cap.at(1)).unwrap();
+        }
 
         // Attacks per Second: 1.24 (augmented)
         let speed_txt = r"Attacks per Second: ([0-9]+\.[0-9]+?) \(augmented\)";
         let speed_re = regex::Regex::new(speed_txt).unwrap();
         for cap in speed_re.captures_iter(lines.next().unwrap()) {
-            println!("speed matched: {}", cap.at(1));
             item.speed = from_str(cap.at(1)).unwrap();
         }
 
@@ -80,11 +120,25 @@ pub struct Item {
         // Requirements:
         lines.next();
         // Level: 49
-        item.req_level = lines.next().unwrap().to_string();
+        let level_txt = r"Level: ([0-9]+)";
+        let level_re = regex::Regex::new(level_txt).unwrap();
+        for cap in level_re.captures_iter(lines.next().unwrap()) {
+            item.req_level = from_str(cap.at(1)).unwrap();
+        }
+
         // Str: 122
-        item.req_str = lines.next().unwrap().to_string();
+        let req_str_txt = r"Str: ([0-9]+)";
+        let req_str_re = regex::Regex::new(req_str_txt).unwrap();
+        for cap in req_str_re.captures_iter(lines.next().unwrap()) {
+            item.req_str = from_str(cap.at(1)).unwrap();
+        }
+
         // Dex: 53
-        item.req_dex = lines.next().unwrap().to_string();
+        let req_dex_txt = r"Dex: ([0-9]+)";
+        let req_dex_re = regex::Regex::new(req_dex_txt).unwrap();
+        for cap in req_dex_re.captures_iter(lines.next().unwrap()) {
+            item.req_dex = from_str(cap.at(1)).unwrap();
+        }
         //req_int : String; // convert to int
 
         // separator
@@ -99,7 +153,11 @@ pub struct Item {
         lines.next();
 
         // Itemlevel: 68
-        item.ilvl = lines.next().unwrap().to_string();
+        let ilvl_txt = r"Itemlevel: ([0-9]+)";
+        let ilvl_re = regex::Regex::new(ilvl_txt).unwrap();
+        for cap in ilvl_re.captures_iter(lines.next().unwrap()) {
+            item.ilvl = from_str(cap.at(1)).unwrap();
+        }
 
         // separator
         // --------
@@ -126,6 +184,8 @@ pub struct Item {
 mod test{
     use super::Item;
     use super::Rarity;
+    use super::DamageType;
+    use super::Dmg;
 
     #[test]
     fn axe() {
@@ -156,19 +216,22 @@ mod test{
                             name: "Dragon Rend".to_string(),
                             itype: "Labrys".to_string(),
                             hands: "Two Handed Axe".to_string(),
-                            physdmg: "Physical Damage: 95-158 (augmented)".to_string(),
-                            crit_chance: "Critical Strike Chance: 5.00%".to_string(),
+                            physdmg: Dmg {dmgtype : DamageType::Physical,
+                                          min : 95,
+                                          max : 158,
+                                         },
+                            crit_chance: 5.00,
                             speed: 1.24,
-                            req_level: "Level: 49".to_string(),
-                            req_str: "Str: 122".to_string(),
-                            req_dex: "Dex: 53".to_string(),
-                            req_int: "".to_string(),
+                            req_level: 49,
+                            req_str: 122,
+                            req_dex: 53,
+                            req_int: 0,
                             sockets: "Sockets: B".to_string(),
-                            ilvl: "Itemlevel: 68".to_string(),
+                            ilvl: 68,
                             affixes: vec!("34% increased Physical Damage".to_string(),
-                            "8% increased Attack Speed".to_string(),
-                            "+9 Life gained on Kill".to_string(),
-                            "+174 to Accuracy Rating".to_string())};
+                                          "8% increased Attack Speed".to_string(),
+                                          "+9 Life gained on Kill".to_string(),
+                                          "+174 to Accuracy Rating".to_string())};
         assert_eq!(expected, result);
     }
 }
