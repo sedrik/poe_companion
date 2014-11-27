@@ -8,6 +8,7 @@ use std::io::Command;
 use std::str::MaybeOwned;
 use poe::item::Item;
 
+#[cfg(not(test))]
 fn main() {
     // Read clipboard
     let mut process = match Command::new("python").arg("poe-clipboard.py").spawn() {
