@@ -1,7 +1,10 @@
 extern crate poe_companion;
 
+#[cfg(not(test))]
 use std::io::Command;
+#[cfg(not(test))]
 use std::str::MaybeOwned;
+#[cfg(not(test))]
 use poe_companion::item::Item;
 
 #[cfg(not(test))]

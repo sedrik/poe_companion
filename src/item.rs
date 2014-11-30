@@ -17,9 +17,10 @@ pub enum Rarity {
 #[deriving(Show, PartialEq)]
 enum DamageType {
     Physical,
-    Lightning,
-    Ice,
-    Fire,
+//    Lightning,
+//    Ice,
+//    Fire,
+    Elemental, //TODO type of damage is unknown until parsing of affixes
 //    Chaos,
 } impl Default for DamageType {
     fn default() -> DamageType { DamageType::Physical }
@@ -51,6 +52,7 @@ pub struct Item {
     req_int : int,
     sockets : String, // represent, sockets, links, colours TODO
     pub ilvl : int,
+    implicit : String,
     affixes : Vec<String>, // represent differnt affixes in a good way? TODO
 } impl Item {
     pub fn new(input: String) -> Item {
@@ -82,69 +84,85 @@ pub struct Item {
         // Ex: Two Handed Axe
         item.hands = lines.next().unwrap().to_string();
 
-        // Physical Damage: 95-158 (augmented)
-        let dmg_txt = r"([:alpha:]+) Damage: ([0-9]+)-([0-9]+) \(augmented\)";
-        let dmg_re = regex::Regex::new(dmg_txt).unwrap();
-        for cap in dmg_re.captures_iter(lines.next().unwrap()) {
-            let dmg = Dmg {
-                dmgtype : {
-                    match cap.at(1) {
-                        "Physical" => DamageType::Physical,
-                        "" => panic!("No dmgtype found"),
-                        _ => panic!("Dmg regex did not match"),
+        // Rest of attack info
+        loop{
+            match lines.next() {
+                Some("--------") => break,
+                Some(atk_info) => {
+                    // Physical Damage: 95-158 (augmented)
+                    let dmg_txt = r"([:alpha:]+) Damage: ([0-9]+)-([0-9]+)*";
+                    let dmg_re = regex::Regex::new(dmg_txt).unwrap();
+                    for cap in dmg_re.captures_iter(atk_info) {
+                        let dmg = Dmg {
+                            dmgtype : {
+                                match cap.at(1) {
+                                    "Physical" => DamageType::Physical,
+                                    "Elemental" => DamageType::Elemental,
+                                    "" => panic!("No dmgtype found"),
+                                    _ => panic!("Dmg regex did not match"),
+                                }
+                            },
+                            min : from_str(cap.at(2)).unwrap(),
+                            max : from_str(cap.at(3)).unwrap(),
+                        };
+                        item.damage.push(dmg);
+                    }
+
+                    // Critical Strike Chance: 5.00%
+                    let crit_txt = r"Critical Strike Chance: ([0-9]+\.[0-9]+)%";
+                    let crit_re = regex::Regex::new(crit_txt).unwrap();
+                    for cap in crit_re.captures_iter(atk_info) {
+                        item.crit_chance = from_str(cap.at(1)).unwrap();
+                    }
+
+                    // Attacks per Second: 1.24 (augmented)
+                    let speed_txt = r"Attacks per Second: ([0-9]+\.[0-9]+)*";
+                    let speed_re = regex::Regex::new(speed_txt).unwrap();
+                    for cap in speed_re.captures_iter(atk_info) {
+                        item.speed = from_str(cap.at(1)).unwrap();
                     }
                 },
-                min : from_str(cap.at(2)).unwrap(),
-                max : from_str(cap.at(3)).unwrap(),
-            };
-            item.damage.push(dmg);
+                None => panic!("Unexpected input during atk_info"),
+            }
         }
 
-        // Critical Strike Chance: 5.00%
-        let crit_txt = r"Critical Strike Chance: ([0-9]+\.[0-9]+?)%";
-        let crit_re = regex::Regex::new(crit_txt).unwrap();
-        for cap in crit_re.captures_iter(lines.next().unwrap()) {
-            item.crit_chance = from_str(cap.at(1)).unwrap();
+        // Requirements
+        loop{
+            match lines.next() {
+                Some("--------") => break,
+                Some("Requirements:") => continue,
+                Some(requirement) => {
+                    // Level: 49
+                    let level_txt = r"Level: ([0-9]+)";
+                    let level_re = regex::Regex::new(level_txt).unwrap();
+                    for cap in level_re.captures_iter(requirement) {
+                        item.req_level = from_str(cap.at(1)).unwrap();
+                    }
+
+                    // Str: 122
+                    let req_str_txt = r"Str: ([0-9]+)";
+                    let req_str_re = regex::Regex::new(req_str_txt).unwrap();
+                    for cap in req_str_re.captures_iter(requirement) {
+                        item.req_str = from_str(cap.at(1)).unwrap();
+                    }
+
+                    // Dex: 53
+                    let req_dex_txt = r"Dex: ([0-9]+)";
+                    let req_dex_re = regex::Regex::new(req_dex_txt).unwrap();
+                    for cap in req_dex_re.captures_iter(requirement) {
+                        item.req_dex = from_str(cap.at(1)).unwrap();
+                    }
+                    // Int
+                    let req_int_txt = r"Int: ([0-9]+)";
+                    let req_int_re = regex::Regex::new(req_int_txt).unwrap();
+                    for cap in req_int_re.captures_iter(requirement) {
+                        item.req_int = from_str(cap.at(1)).unwrap();
+                    }
+                }
+                None => panic!("unexpected end of input \
+                                when expecting implicit"),
+            }
         }
-
-        // Attacks per Second: 1.24 (augmented)
-        let speed_txt = r"Attacks per Second: ([0-9]+\.[0-9]+?) \(augmented\)";
-        let speed_re = regex::Regex::new(speed_txt).unwrap();
-        for cap in speed_re.captures_iter(lines.next().unwrap()) {
-            item.speed = from_str(cap.at(1)).unwrap();
-        }
-
-        // separator
-        // --------
-        lines.next();
-
-        // Requirements:
-        lines.next();
-        // Level: 49
-        let level_txt = r"Level: ([0-9]+)";
-        let level_re = regex::Regex::new(level_txt).unwrap();
-        for cap in level_re.captures_iter(lines.next().unwrap()) {
-            item.req_level = from_str(cap.at(1)).unwrap();
-        }
-
-        // Str: 122
-        let req_str_txt = r"Str: ([0-9]+)";
-        let req_str_re = regex::Regex::new(req_str_txt).unwrap();
-        for cap in req_str_re.captures_iter(lines.next().unwrap()) {
-            item.req_str = from_str(cap.at(1)).unwrap();
-        }
-
-        // Dex: 53
-        let req_dex_txt = r"Dex: ([0-9]+)";
-        let req_dex_re = regex::Regex::new(req_dex_txt).unwrap();
-        for cap in req_dex_re.captures_iter(lines.next().unwrap()) {
-            item.req_dex = from_str(cap.at(1)).unwrap();
-        }
-        //req_int : String; // convert to int
-
-        // separator
-        // --------
-        lines.next();
 
         // Sockets: B 
         item.sockets = lines.next().unwrap().to_string();
@@ -163,6 +181,18 @@ pub struct Item {
         // separator
         // --------
         lines.next();
+
+        //Implicit
+        if item.hands == "Dagger".to_string() {
+            loop{
+                match lines.next() {
+                    Some("--------") => break,
+                    Some(implicit) => item.implicit = implicit.to_string(),
+                    None => panic!("unexpected end of input \
+                                   when expecting implicit"),
+                }
+            }
+        }
 
         // Affixes
         // 34% increased Physical Damage
@@ -195,9 +225,10 @@ pub struct Item {
 
     pub fn edps(&self) -> f64 {
         match self.damage.iter()
-                         .find(|dmg| dmg.dmgtype == DamageType::Lightning ||
-                                     dmg.dmgtype == DamageType::Fire ||
-                                     dmg.dmgtype == DamageType::Ice)
+                         .find(|dmg| dmg.dmgtype == DamageType::Elemental)
+                         //.find(|dmg| dmg.dmgtype == DamageType::Lightning ||
+                         //            dmg.dmgtype == DamageType::Fire ||
+                         //            dmg.dmgtype == DamageType::Ice)
                          .map(|dmg| Item::dps_calc(dmg.min, dmg.max,
                                                    self.speed)) {
                 Some(dps) => dps,
@@ -261,6 +292,7 @@ mod test{
                             req_int: 0,
                             sockets: "Sockets: B".to_string(),
                             ilvl: 68,
+                            implicit: "".to_string(),
                             affixes: vec!("34% increased Physical Damage".to_string(),
                                           "8% increased Attack Speed".to_string(),
                                           "+9 Life gained on Kill".to_string(),
@@ -269,5 +301,70 @@ mod test{
         assert!(item.dps() - 156.86 < 0.001);
         assert!(item.pdps() - 156.86 < 0.001);
         assert_eq!(item.edps(), 0.0);
+    }
+
+    #[test]
+    fn dagger() {
+        let dagger = "Rarity: Rare\n\
+                      Phoenix Gutter\n\
+                      Slaughter Knife\n\
+                      --------\n\
+                      Dagger\n\
+                      Physical Damage: 9-78\n\
+                      Elemental Damage: 1-10 (augmented)\n\
+                      Critical Strike Chance: 6.80%\n\
+                      Attacks per Second: 1.40\n\
+                      --------\n\
+                      Requirements:\n\
+                      Level: 58\n\
+                      Dex: 81\n\
+                      Int: 117\n\
+                      --------\n\
+                      Sockets: B-B B\n\
+                      --------\n\
+                      Itemlevel: 60\n\
+                      --------\n\
+                      40% increased Global Critical Strike Chance\n\
+                      --------\n\
+                      57% increased Spell Damage\n\
+                      +31 to Dexterity\n\
+                      Adds 1-10 Lightning Damage\n\
+                      13% increased Critical Strike Chance for Spells";
+        let item = super::Item::new(dagger.to_string());
+        let expected = Item{rarity: Rarity::Rare,
+                            name: "Phoenix Gutter".to_string(),
+                            itype: "Slaughter Knife".to_string(),
+                            hands: "Dagger".to_string(),
+                            damage: vec!(
+                                Dmg {
+                                    dmgtype : DamageType::Physical,
+                                    min : 9,
+                                    max : 78,
+                                },
+                                Dmg {
+                                    dmgtype : DamageType::Elemental,
+                                    min : 1,
+                                    max : 10,
+                                }),
+                            crit_chance: 6.80,
+                            speed: 1.40,
+                            req_level: 58,
+                            req_str: 0,
+                            req_dex: 81,
+                            req_int: 117,
+                            sockets: "Sockets: B-B B".to_string(),
+                            ilvl: 60,
+                            implicit: "40% increased Global Critical Strike \
+                                           Chance".to_string(),
+                            affixes:
+                                vec!("57% increased Spell Damage".to_string(),
+                                     "+31 to Dexterity".to_string(),
+                                     "Adds 1-10 Lightning Damage".to_string(),
+                                     "13% increased Critical Strike Chance for Spells"
+                                        .to_string())};
+        assert_eq!(expected, item);
+        assert!(item.dps() - 68.6 < 0.001);
+        assert!(item.pdps() - 60.9 < 0.001);
+        assert!(item.edps() - 7.7 < 0.001);
     }
 }
