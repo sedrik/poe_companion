@@ -2,6 +2,7 @@ extern crate regex;
 
 use std::default::Default;
 use std::iter::AdditiveIterator;
+use std::str::CharSplits;
 
 #[deriving(Show, PartialEq)]
 pub enum Rarity {
@@ -41,7 +42,7 @@ struct Dmg {
 pub struct Item {
     rarity : Rarity,
     pub name : String,
-    itype : String,
+    itype : String, // TODO rename to basetype
     hands : String, //Need better name, what can I do with this field?
     damage : Vec<Dmg>, // TODO Should probably be a Vec with all the damage types
     crit_chance : f64,
@@ -59,30 +60,59 @@ pub struct Item {
         let mut item: Item = Default::default();
         let mut lines = input.split('\n');
 
-        // Rarity
-        // Ex: Rarity: Rare
-        item.rarity = match lines.next(){
+        // Header info, contains rarity, name and base type
+        item.rarity = Item::parse_rarity(&mut lines);
+        item.name = Item::parse_line(&mut lines);
+        item.itype = Item::parse_line(&mut lines);
+        //Advances the iterator past a separator line
+        Item::parse_line(&mut lines);
+
+        // Weapon info, item type?, attack damage, attack speed, crit chance
+        Item::parse_weapon_info(&mut lines, &mut item);
+
+        // Requirements info, needed stats and level
+        Item::parse_requrements_info(&mut lines, &mut item);
+
+        // Sockets info
+        item.sockets = Item::parse_line(&mut lines);
+        //Advances the iterator past a separator line
+        Item::parse_line(&mut lines);
+
+        // Item level info
+        Item::parse_item_level(&mut lines, &mut item);
+        //Advances the iterator past a separator line
+        Item::parse_line(&mut lines);
+
+        //Implicit info TODO better way of detecting if implicit should be
+        //                   included or not
+        if item.hands == "Dagger".to_string() {
+            Item::parse_implicit(&mut lines, &mut item);
+        }
+
+        // Affixes info
+        Item::parse_affixes(&mut lines, &mut item);
+
+        return item
+    }
+
+    fn parse_line(lines : &mut CharSplits<char>) -> String {
+        lines.next().unwrap().to_string()
+    }
+
+    fn parse_rarity(lines: &mut CharSplits<char>) -> Rarity {
+        match lines.next(){
             Some("Rarity: Normal") => Rarity::Normal,
             Some("Rarity: Magic") => Rarity::Magic,
             Some("Rarity: Rare") => Rarity::Rare,
             Some("Rarity: Unique") => Rarity::Unique,
-            other => panic!("unexpected rarity: {}", other),
-        };
+            Some(other) => panic!("unexpected rarity: {}", other),
+            None => panic!("Unable to parse rarity"),
+        }
+    }
 
-        // name
-        // Ex: Dragon Rend
-        item.name = lines.next().unwrap().to_string();
-        // type
-        // Ex: Labrys
-        item.itype = lines.next().unwrap().to_string();
-
-        // separator
-        // --------
-        lines.next();
-
-        // hands
+    fn parse_weapon_info(lines: &mut CharSplits<char>, item: &mut Item) {
         // Ex: Two Handed Axe
-        item.hands = lines.next().unwrap().to_string();
+        item.hands = Item::parse_line(lines);
 
         // Rest of attack info
         loop{
@@ -125,8 +155,9 @@ pub struct Item {
                 None => panic!("Unexpected input during atk_info"),
             }
         }
+    }
 
-        // Requirements
+    fn parse_requrements_info(lines: &mut CharSplits<char>, item: &mut Item) {
         loop{
             match lines.next() {
                 Some("--------") => break,
@@ -163,42 +194,29 @@ pub struct Item {
                                 when expecting implicit"),
             }
         }
+    }
 
-        // Sockets: B 
-        item.sockets = lines.next().unwrap().to_string();
-
-        // separator
-        // --------
-        lines.next();
-
+    fn parse_item_level(lines: &mut CharSplits<char>, item: &mut Item) {
         // Itemlevel: 68
         let ilvl_txt = r"Itemlevel: ([0-9]+)";
         let ilvl_re = regex::Regex::new(ilvl_txt).unwrap();
         for cap in ilvl_re.captures_iter(lines.next().unwrap()) {
             item.ilvl = from_str(cap.at(1)).unwrap();
         }
+    }
 
-        // separator
-        // --------
-        lines.next();
-
-        //Implicit
-        if item.hands == "Dagger".to_string() {
-            loop{
-                match lines.next() {
-                    Some("--------") => break,
-                    Some(implicit) => item.implicit = implicit.to_string(),
-                    None => panic!("unexpected end of input \
-                                   when expecting implicit"),
-                }
+    fn parse_implicit(lines: &mut CharSplits<char>, item: &mut Item) {
+        loop{
+            match lines.next() {
+                Some("--------") => break,
+                Some(implicit) => item.implicit = implicit.to_string(),
+                None => panic!("unexpected end of input \
+                               when expecting implicit"),
             }
         }
+    }
 
-        // Affixes
-        // 34% increased Physical Damage
-        // 8% increased Attack Speed
-        // +9 Life gained on Kill
-        // +174 to Accuracy Rating
+    fn parse_affixes(lines: &mut CharSplits<char>, item: &mut Item) {
         loop {
             match lines.next() {
                 Some("") => continue, //New lines in the end and what not.
@@ -206,8 +224,6 @@ pub struct Item {
                 None => break,
             }
         }
-
-        return item
     }
 
     pub fn dps(&self) -> f64 {

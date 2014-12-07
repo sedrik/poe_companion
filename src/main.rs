@@ -3,7 +3,7 @@ extern crate poe_companion;
 #[cfg(not(test))]
 use std::io::Command;
 #[cfg(not(test))]
-use std::str::MaybeOwned;
+use std::borrow::Cow;
 #[cfg(not(test))]
 use poe_companion::item::Item;
 
@@ -19,8 +19,8 @@ fn main() {
     let poe_item = String::from_utf8_lossy(output.as_slice());
 
     let item_cstr = match poe_item {
-        MaybeOwned::Owned(string) => string,
-        MaybeOwned::Slice(slice) => slice.to_string(),
+        Cow::Owned(string) => string,
+        Cow::Borrowed(slice) => slice.to_string(),
     };
 
     let item = Item::new(item_cstr);
