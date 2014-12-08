@@ -61,11 +61,10 @@ pub struct Item {
         let mut lines = input.split('\n');
 
         // Header info, contains rarity, name and base type
-        item.rarity = Item::parse_rarity(&mut lines);
-        item.name = Item::parse_line(&mut lines);
-        item.itype = Item::parse_line(&mut lines);
-        //Advances the iterator past a separator line
-        Item::parse_line(&mut lines);
+        Item::parse_rarity(&mut lines, &mut item);
+        Item::parse_name(&mut lines, &mut item);
+        Item::parse_itype(&mut lines, &mut item);
+        Item::parse_separator(&mut lines, &mut item);
 
         // Weapon info, item type?, attack damage, attack speed, crit chance
         Item::parse_weapon_info(&mut lines, &mut item);
@@ -74,14 +73,12 @@ pub struct Item {
         Item::parse_requrements_info(&mut lines, &mut item);
 
         // Sockets info
-        item.sockets = Item::parse_line(&mut lines);
-        //Advances the iterator past a separator line
-        Item::parse_line(&mut lines);
+        Item::parse_sockets(&mut lines, &mut item);
+        Item::parse_separator(&mut lines, &mut item);
 
         // Item level info
         Item::parse_item_level(&mut lines, &mut item);
-        //Advances the iterator past a separator line
-        Item::parse_line(&mut lines);
+        Item::parse_separator(&mut lines, &mut item);
 
         //Implicit info TODO better way of detecting if implicit should be
         //                   included or not
@@ -95,12 +92,28 @@ pub struct Item {
         return item
     }
 
-    fn parse_line(lines : &mut CharSplits<char>) -> String {
-        lines.next().unwrap().to_string()
+    fn parse_name(lines : &mut CharSplits<char>, item: &mut Item) {
+        item.name = lines.next().unwrap().to_string()
     }
 
-    fn parse_rarity(lines: &mut CharSplits<char>) -> Rarity {
-        match lines.next(){
+    fn parse_itype(lines : &mut CharSplits<char>, item: &mut Item) {
+        item.itype = lines.next().unwrap().to_string()
+    }
+
+    fn parse_sockets(lines : &mut CharSplits<char>, item: &mut Item) {
+        item.sockets = lines.next().unwrap().to_string()
+    }
+
+    fn parse_hands(lines : &mut CharSplits<char>, item: &mut Item) {
+        item.hands = lines.next().unwrap().to_string()
+    }
+
+    fn parse_separator(lines : &mut CharSplits<char>, _item: &mut Item) {
+        lines.next();
+    }
+
+    fn parse_rarity(lines: &mut CharSplits<char>, item: &mut Item) {
+        item.rarity = match lines.next(){
             Some("Rarity: Normal") => Rarity::Normal,
             Some("Rarity: Magic") => Rarity::Magic,
             Some("Rarity: Rare") => Rarity::Rare,
@@ -112,7 +125,7 @@ pub struct Item {
 
     fn parse_weapon_info(lines: &mut CharSplits<char>, item: &mut Item) {
         // Ex: Two Handed Axe
-        item.hands = Item::parse_line(lines);
+        Item::parse_hands(lines, item);
 
         // Rest of attack info
         loop{
