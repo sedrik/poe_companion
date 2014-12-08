@@ -60,35 +60,34 @@ pub struct Item {
         let mut item: Item = Default::default();
         let mut lines = input.split('\n');
 
-        // Header info, contains rarity, name and base type
         Item::parse_rarity(&mut lines, &mut item);
         Item::parse_name(&mut lines, &mut item);
         Item::parse_itype(&mut lines, &mut item);
-        Item::parse_separator(&mut lines, &mut item);
-
-        // Weapon info, item type?, attack damage, attack speed, crit chance
-        Item::parse_weapon_info(&mut lines, &mut item);
-
-        // Requirements info, needed stats and level
-        Item::parse_requrements_info(&mut lines, &mut item);
-
-        // Sockets info
-        Item::parse_sockets(&mut lines, &mut item);
-        Item::parse_separator(&mut lines, &mut item);
-
-        // Item level info
-        Item::parse_item_level(&mut lines, &mut item);
-        Item::parse_separator(&mut lines, &mut item);
-
-        //Implicit info TODO better way of detecting if implicit should be
-        //                   included or not
-        if item.hands == "Dagger".to_string() {
-            Item::parse_implicit(&mut lines, &mut item);
+        let pattern = if item.itype == "Slaughter Knife" {
+            vec!(Item::parse_separator,
+                 Item::parse_weapon_info,
+                 Item::parse_requrements_info,
+                 Item::parse_sockets,
+                 Item::parse_separator,
+                 Item::parse_item_level,
+                 Item::parse_separator,
+                 Item::parse_implicit,
+                 Item::parse_affixes,
+                 )
+        } else {
+            vec!(Item::parse_separator,
+                 Item::parse_weapon_info,
+                 Item::parse_requrements_info,
+                 Item::parse_sockets,
+                 Item::parse_separator,
+                 Item::parse_item_level,
+                 Item::parse_separator,
+                 Item::parse_affixes,
+                 )
+        };
+        for &func in pattern.iter() {
+            func(&mut lines, &mut item)
         }
-
-        // Affixes info
-        Item::parse_affixes(&mut lines, &mut item);
-
         return item
     }
 
