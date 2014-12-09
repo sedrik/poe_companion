@@ -10,6 +10,7 @@ pub enum Rarity {
     Magic,
     Rare,
     Unique,
+    Gem,
     Unknown,
 } impl Default for Rarity {
     fn default() -> Rarity { Rarity::Unknown }
@@ -55,38 +56,61 @@ pub struct Item {
     pub ilvl : int,
     implicit : String,
     affixes : Vec<String>, // represent differnt affixes in a good way? TODO
+    experience : String,
+    description : String,
+    cast_time : String,
+    cooldown : String,
+    mana_reserved : String,
+    properties : String,
 } impl Item {
     pub fn new(input: String) -> Item {
         let mut item: Item = Default::default();
         let mut lines = input.split('\n');
 
         Item::parse_rarity(&mut lines, &mut item);
-        Item::parse_name(&mut lines, &mut item);
-        Item::parse_itype(&mut lines, &mut item);
-        let pattern = if item.itype == "Slaughter Knife" {
-            vec!(Item::parse_separator,
-                 Item::parse_weapon_info,
-                 Item::parse_requrements_info,
-                 Item::parse_sockets,
+        let pattern = if item.rarity == Rarity::Gem {
+            item.itype = "Gem".to_string();
+            vec!(Item::parse_name,
                  Item::parse_separator,
+                 Item::parse_properties,
                  Item::parse_item_level,
+                 Item::parse_mana_reserved,
+                 Item::parse_cooldown,
+                 Item::parse_cast_time,
+                 Item::parse_experience,
                  Item::parse_separator,
-                 Item::parse_implicit,
+                 Item::parse_requrements_info,
                  Item::parse_affixes,
+                 Item::parse_description,
                  )
         } else {
-            vec!(Item::parse_separator,
-                 Item::parse_weapon_info,
-                 Item::parse_requrements_info,
-                 Item::parse_sockets,
-                 Item::parse_separator,
-                 Item::parse_item_level,
-                 Item::parse_separator,
-                 Item::parse_affixes,
-                 )
+            Item::parse_name(&mut lines, &mut item);
+            Item::parse_itype(&mut lines, &mut item);
+            if item.itype == "Slaughter Knife" {
+                vec!(Item::parse_separator,
+                     Item::parse_weapon_info,
+                     Item::parse_requrements_info,
+                     Item::parse_sockets,
+                     Item::parse_separator,
+                     Item::parse_item_level,
+                     Item::parse_separator,
+                     Item::parse_implicit,
+                     Item::parse_affixes,
+                     )
+            } else {
+                vec!(Item::parse_separator,
+                     Item::parse_weapon_info,
+                     Item::parse_requrements_info,
+                     Item::parse_sockets,
+                     Item::parse_separator,
+                     Item::parse_item_level,
+                     Item::parse_separator,
+                     Item::parse_affixes,
+                     )
+            }
         };
         for &func in pattern.iter() {
-            func(&mut lines, &mut item)
+            func(&mut lines, &mut item);
         }
         return item
     }
@@ -111,12 +135,37 @@ pub struct Item {
         lines.next();
     }
 
+    fn parse_cast_time(lines : &mut CharSplits<char>, item: &mut Item) {
+        item.cast_time = lines.next().unwrap().to_string()
+    }
+
+    fn parse_experience(lines : &mut CharSplits<char>, item: &mut Item) {
+        item.experience = lines.next().unwrap().to_string()
+    }
+
+    fn parse_description(lines : &mut CharSplits<char>, item: &mut Item) {
+        item.description = lines.next().unwrap().to_string()
+    }
+
+    fn parse_cooldown(lines : &mut CharSplits<char>, item: &mut Item) {
+        item.cooldown = lines.next().unwrap().to_string()
+    }
+
+    fn parse_mana_reserved(lines : &mut CharSplits<char>, item: &mut Item) {
+        item.mana_reserved = lines.next().unwrap().to_string()
+    }
+
+    fn parse_properties(lines : &mut CharSplits<char>, item: &mut Item) {
+        item.properties = lines.next().unwrap().to_string()
+    }
+
     fn parse_rarity(lines: &mut CharSplits<char>, item: &mut Item) {
         item.rarity = match lines.next(){
             Some("Rarity: Normal") => Rarity::Normal,
             Some("Rarity: Magic") => Rarity::Magic,
             Some("Rarity: Rare") => Rarity::Rare,
             Some("Rarity: Unique") => Rarity::Unique,
+            Some("Rarity: Gem") => Rarity::Gem,
             Some(other) => panic!("unexpected rarity: {}", other),
             None => panic!("Unable to parse rarity"),
         }
@@ -231,7 +280,7 @@ pub struct Item {
     fn parse_affixes(lines: &mut CharSplits<char>, item: &mut Item) {
         loop {
             match lines.next() {
-                Some("") => continue, //New lines in the end and what not.
+                Some("--------") => break,
                 Some(affix) => item.affixes.push(affix.to_string()),
                 None => break,
             }
@@ -276,7 +325,9 @@ mod test{
     use super::Rarity;
     use super::DamageType;
     use super::Dmg;
+    use std::default::Default;
 
+    // These tests should maybe go into the tests directory.
     #[test]
     fn axe() {
         let axe = "Rarity: Rare\n\
@@ -302,29 +353,30 @@ mod test{
                    +9 Life gained on Kill\n\
                    +174 to Accuracy Rating";
         let item = super::Item::new(axe.to_string());
-        let expected = Item{rarity: Rarity::Rare,
-                            name: "Dragon Rend".to_string(),
-                            itype: "Labrys".to_string(),
-                            hands: "Two Handed Axe".to_string(),
-                            damage: vec!(
+        let mut expected: Item = Default::default();
+        expected.rarity = Rarity::Rare;
+        expected.name = "Dragon Rend".to_string();
+        expected.itype = "Labrys".to_string();
+        expected.hands = "Two Handed Axe".to_string();
+        expected.damage = vec!(
                                 Dmg {
                                     dmgtype : DamageType::Physical,
                                     min : 95,
                                     max : 158,
-                                }),
-                            crit_chance: 5.00,
-                            speed: 1.24,
-                            req_level: 49,
-                            req_str: 122,
-                            req_dex: 53,
-                            req_int: 0,
-                            sockets: "Sockets: B".to_string(),
-                            ilvl: 68,
-                            implicit: "".to_string(),
-                            affixes: vec!("34% increased Physical Damage".to_string(),
-                                          "8% increased Attack Speed".to_string(),
-                                          "+9 Life gained on Kill".to_string(),
-                                          "+174 to Accuracy Rating".to_string())};
+                                });
+        expected.crit_chance = 5.00;
+        expected.speed = 1.24;
+        expected.req_level = 49;
+        expected.req_str = 122;
+        expected.req_dex = 53;
+        expected.req_int = 0;
+        expected.sockets = "Sockets: B".to_string();
+        expected.ilvl = 68;
+        expected.implicit = "".to_string();
+        expected.affixes = vec!("34% increased Physical Damage".to_string(),
+                                "8% increased Attack Speed".to_string(),
+                                "+9 Life gained on Kill".to_string(),
+                                "+174 to Accuracy Rating".to_string());
         assert_eq!(expected, item);
         assert!(item.dps() - 156.86 < 0.001);
         assert!(item.pdps() - 156.86 < 0.001);
@@ -359,40 +411,82 @@ mod test{
                       Adds 1-10 Lightning Damage\n\
                       13% increased Critical Strike Chance for Spells";
         let item = super::Item::new(dagger.to_string());
-        let expected = Item{rarity: Rarity::Rare,
-                            name: "Phoenix Gutter".to_string(),
-                            itype: "Slaughter Knife".to_string(),
-                            hands: "Dagger".to_string(),
-                            damage: vec!(
-                                Dmg {
-                                    dmgtype : DamageType::Physical,
-                                    min : 9,
-                                    max : 78,
-                                },
-                                Dmg {
-                                    dmgtype : DamageType::Elemental,
-                                    min : 1,
-                                    max : 10,
-                                }),
-                            crit_chance: 6.80,
-                            speed: 1.40,
-                            req_level: 58,
-                            req_str: 0,
-                            req_dex: 81,
-                            req_int: 117,
-                            sockets: "Sockets: B-B B".to_string(),
-                            ilvl: 60,
-                            implicit: "40% increased Global Critical Strike \
-                                           Chance".to_string(),
-                            affixes:
-                                vec!("57% increased Spell Damage".to_string(),
-                                     "+31 to Dexterity".to_string(),
-                                     "Adds 1-10 Lightning Damage".to_string(),
-                                     "13% increased Critical Strike Chance for Spells"
-                                        .to_string())};
+        let mut expected: Item = Default::default();
+        expected.rarity = Rarity::Rare;
+        expected.name = "Phoenix Gutter".to_string();
+        expected.itype = "Slaughter Knife".to_string();
+        expected.hands = "Dagger".to_string();
+        expected.damage = vec!(Dmg {dmgtype : DamageType::Physical, min : 9,
+                                    max : 78},
+                               Dmg {dmgtype : DamageType::Elemental, min : 1,
+                                    max : 10}
+                              );
+        expected.crit_chance = 6.80;
+        expected.speed = 1.40;
+        expected.req_level = 58;
+        expected.req_str = 0;
+        expected.req_dex = 81;
+        expected.req_int = 117;
+        expected.sockets = "Sockets: B-B B".to_string();
+        expected.ilvl = 60;
+        expected.implicit = "40% increased Global Critical Strike Chance".to_string();
+        expected.affixes = vec!("57% increased Spell Damage".to_string(),
+                      "+31 to Dexterity".to_string(),
+                      "Adds 1-10 Lightning Damage".to_string(),
+                      "13% increased Critical Strike Chance for Spells"
+                      .to_string());
         assert_eq!(expected, item);
         assert!(item.dps() - 68.6 < 0.001);
         assert!(item.pdps() - 60.9 < 0.001);
         assert!(item.edps() - 7.7 < 0.001);
+    }
+
+    #[test]
+    fn anger() {
+        let gem = "Rarity: Gem\n\
+                   Anger\n\
+                   --------\n\
+                   Aura, Fire, Spell, AoE\n\
+                   Level: 10\n\
+                   Mana Reserved: 60%\n\
+                   Cooldown Time: 0.50 sec\n\
+                   Cast Time: 1.20 sec\n\
+                   Experience: 274 328/1 061 223\n\
+                   --------\n\
+                   Requirements:\n\
+                   Level: 40\n\
+                   Str: 58\n\
+                   Int: 40\n\
+                   --------\n\
+                   25% increased Area of Effect radius\n\
+                   You and nearby allies deal 26-44 additional Fire Damage \
+                   with Attacks\n\
+                   --------\n\
+                   Place into an item socket of the right colour to gain \
+                   this skill. Right click to remove from a socket.";
+        let item = super::Item::new(gem.to_string());
+        let mut expected: Item = Default::default();
+        expected.rarity = Rarity::Gem;
+        expected.name = "Anger".to_string();
+        expected.itype = "Gem".to_string();
+        expected.properties = "Aura, Fire, Spell, AoE".to_string();
+        expected.req_level = 10;
+        expected.mana_reserved = "Mana Reserved: 60%".to_string();
+        expected.cooldown = "Cooldown Time: 0.50 sec".to_string();
+        expected.cast_time = "Cast Time: 1.20 sec".to_string();
+        expected.experience = "Experience: 274 328/1 061 223".to_string();
+        expected.req_level = 40;
+        expected.req_str = 58;
+        expected.req_dex = 0;
+        expected.req_int = 40;
+        expected.affixes = vec!("25% increased Area of Effect radius"
+                                .to_string(),
+                                "You and nearby allies deal 26-44 additional \
+                                Fire Damage with Attacks".to_string(),
+                                );
+        expected.description = "Place into an item socket of the right colour \
+                                to gain this skill. Right click to remove \
+                                from a socket.".to_string();
+        assert_eq!(expected, item);
     }
 }
