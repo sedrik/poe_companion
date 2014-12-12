@@ -21,10 +21,17 @@ Python 2.7 tk support required (might work with 3 but it is untested)
 
 How it works
 ====
-
+Start poe_companion. It will read the clipboard peridically (currently every
+third second).
 In poe, hover over a item and press Ctrl + c to copy it's information to the
-clipboard, then you can invoke this program to have it print some very basic
-information about the item.
+clipboard.
+
+Known Issues
+====
+* Many Items will not be parsed correctly (for example flasks does not work as
+  expected at the moment).
+* If parsing fails poe_companion will simply stop instead of handling the
+  error.
 
 Future plans
 ====

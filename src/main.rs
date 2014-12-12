@@ -16,7 +16,8 @@ fn main() {
 
     loop{
         // Read clipboard
-        let mut process = match Command::new("python").arg("poe-clipboard.py").spawn() {
+        let mut process = match Command::new("python").arg("poe-clipboard.py")
+                                        .spawn() {
             Ok(p) => p,
             Err(e) => panic!("Could not run python poe-clipboard.py: {}", e),
         };
