@@ -14,10 +14,9 @@ use std::time::duration::Duration;
 fn main() {
     let interval = Duration::seconds(4);
 
-    loop{
+    loop {
         // Read clipboard
-        let mut process = match Command::new("python").arg("poe-clipboard.py")
-                                        .spawn() {
+        let mut process = match Command::new("python").arg("poe-clipboard.py").spawn() {
             Ok(p) => p,
             Err(e) => panic!("Could not run python poe-clipboard.py: {}", e),
         };
@@ -35,5 +34,5 @@ fn main() {
         println!("{}", item);
 
         timer::sleep(interval);
-    };
+    }
 }
